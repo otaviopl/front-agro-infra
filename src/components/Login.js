@@ -1,29 +1,38 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Alert,
+  CircularProgress,
+  Paper,
+} from "@mui/material";
 
-const Login = () => {
-  const [username, setUsername] = useState("");
+const Login = ({ setUsername }) => {
+  const [username, setLocalUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const navigate = useNavigate();
   const handleLogin = async (event) => {
     event.preventDefault();
     setError("");
     setIsLoading(true);
-
+  
     try {
-      const payload = {
-        username,
-        email,
-        password,
-      };
-
-      // Formata o payload no formato esperado pelo backend
+      // Construir o corpo no formato esperado
       const requestBody = {
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          username,
+          email,
+          password,
+        }),
       };
-
+  
       const response = await fetch(
         "https://aw1gwngj0h.execute-api.us-east-1.amazonaws.com/dev/login",
         {
@@ -31,19 +40,18 @@ const Login = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(requestBody),
+          body: JSON.stringify(requestBody), // Enviar o corpo formatado
         }
       );
-
+  
       const rawData = await response.json();
-
-      // Parseia o campo "body" da resposta do backend, que é um JSON stringificado
       const data = JSON.parse(rawData.body);
-
+  
       if (rawData.statusCode === 200 && data.token) {
-        // Credenciais válidas - Salva o token e redireciona
         localStorage.setItem("authToken", data.token);
-        window.location.href = "/"; // Redireciona para a dashboard
+        sessionStorage.setItem("username", username);
+        setUsername(username);
+        navigate("/");
       } else {
         throw new Error(data.message || "Erro ao realizar login");
       }
@@ -52,47 +60,65 @@ const Login = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  };  
 
   return (
-    <div style={{ maxWidth: "400px", margin: "0 auto", padding: "20px" }}>
-      <h2>Login</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <form onSubmit={handleLogin}>
-        <div>
-          <label>Username:</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Email:</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Senha:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? "Carregando..." : "Entrar"}
-          </button>
-        </div>
-      </form>
-    </div>
+    <Paper
+      elevation={3}
+      sx={{
+        maxWidth: 400,
+        margin: "auto",
+        padding: 4,
+        mt: 8,
+        textAlign: "center",
+      }}
+    >
+      <Typography variant="h4" component="h2" color="primary" mb={2}>
+        Login
+      </Typography>
+      {error && <Alert severity="error">{error}</Alert>}
+      <Box component="form" onSubmit={handleLogin} mt={2}>
+        <TextField
+          label="Username"
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          value={username}
+          onChange={(e) => setLocalUsername(e.target.value)}
+          required
+        />
+        <TextField
+          label="Email"
+          type="email"
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <TextField
+          label="Senha"
+          type="password"
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          fullWidth
+          disabled={isLoading}
+          sx={{ mt: 2 }}
+        >
+          {isLoading ? <CircularProgress size={24} color="inherit" /> : "Entrar"}
+        </Button>
+      </Box>
+    </Paper>
   );
 };
 

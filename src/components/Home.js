@@ -1,15 +1,15 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useLoadScript } from "@react-google-maps/api";
-import { Container, TextField, Button, Typography, Box } from "@mui/material";
+import { TextField, Button, Typography, Box, Paper, CircularProgress } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 const libraries = ["places"];
 
-const Home = () => {
+const Home = ({ username: passedUsername }) => {
+  const [username, setUsername] = useState(passedUsername || sessionStorage.getItem("username") || "");
   const [location, setLocation] = useState("");
-  const [coordinates, setCoordinates] = useState({ latitude: null, longitude: null });
-  const [loading, setLoading] = useState(false);
-  const autocompleteRef = useRef(null);
+  const [coordinates, setCoordinates] = useState(null);
+  const [loading, setLoading] = useState(true);
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
@@ -19,91 +19,139 @@ const Home = () => {
   });
 
   useEffect(() => {
-    if (isLoaded && inputRef.current) {
-      autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current);
-      autocompleteRef.current.addListener("place_changed", handlePlaceSelect);
+    if (!username) {
+      console.warn("Nenhum usuário logado. Redirecionando para login.");
+      navigate("/login");
+      return;
     }
-  }, [isLoaded]);
 
-  const handlePlaceSelect = () => {
-    const place = autocompleteRef.current.getPlace();
-    if (place.geometry && place.geometry.location) {
-      setLocation(place.formatted_address || "Local desconhecido");
-      setCoordinates({
-        latitude: place.geometry.location.lat(),
-        longitude: place.geometry.location.lng(),
-      });
-    }
-  };
+    const fetchLocation = async () => {
+      const cachedLocation = sessionStorage.getItem("userLocation");
 
-  const saveLocationToDatabase = async (username, location) => {
+      if (cachedLocation) {
+        const parsed = JSON.parse(cachedLocation);
+        setLocation(parsed.address);
+        setCoordinates(parsed);
+      } else {
+        try {
+          const response = await fetch(`https://aw1gwngj0h.execute-api.us-east-1.amazonaws.com/dev/update-location?username=${username}`);
+
+          if (response.ok) {
+            const data = await response.json();
+            const parsedBody = JSON.parse(data.body);
+
+            const { address, latitude, longitude } = parsedBody.location || {};
+            if (address && latitude && longitude) {
+              const locationData = { address, latitude, longitude };
+              setLocation(locationData.address);
+              setCoordinates(locationData);
+              sessionStorage.setItem("userLocation", JSON.stringify(locationData));
+
+            } else {
+              console.warn("Dados de localização ausentes ou incompletos.");
+            }
+          } else {
+            console.error("Erro na resposta da API:", response.statusText);
+          }
+        } catch (error) {
+          console.warn("Erro ao buscar localização do DynamoDB:", error);
+        }
+      }
+
+      setLoading(false);
+    };
+
+    fetchLocation();
+  }, [username, navigate]);
+
+  const saveLocation = async (locationData) => {
     try {
-      setLoading(true);
-      const response = await fetch(process.env.REACT_APP_LAMBDA_URL, {
+      await fetch("https://aw1gwngj0h.execute-api.us-east-1.amazonaws.com/dev/update-location", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, location }),
+        body: JSON.stringify({ username, location: locationData }),
       });
-
-      if (!response.ok) {
-        throw new Error("Erro ao salvar a localização.");
-      }
-
-      const data = await response.json();
-      console.log("Localização salva:", data);
-      setLoading(false);
-      return data;
     } catch (error) {
-      console.error("Erro:", error);
-      setLoading(false);
-      alert("Erro ao salvar localização. Tente novamente.");
+      console.warn("Erro ao salvar localização no servidor:", error);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (coordinates.latitude && coordinates.longitude) {
-      const username = "usuario-teste"; // Substitua com o nome do usuário autenticado
-      const locationData = `${location} (${coordinates.latitude}, ${coordinates.longitude})`;
-
-      const result = await saveLocationToDatabase(username, locationData);
-
-      if (result) {
-        navigate("/dashboard", { state: coordinates });
+  const handlePlaceSelect = () => {
+    const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current);
+    autocomplete.addListener("place_changed", () => {
+      const place = autocomplete.getPlace();
+      if (place.geometry?.location) {
+        const locationData = {
+          address: place.formatted_address || "Local desconhecido",
+          latitude: place.geometry.location.lat(),
+          longitude: place.geometry.location.lng(),
+        };
+        setLocation(locationData.address);
+        setCoordinates(locationData);
+        sessionStorage.setItem("userLocation", JSON.stringify(locationData));
+        saveLocation(locationData);
       }
-    } else {
-      alert("Por favor, selecione um local válido.");
+    });
+  };
+
+  const handleContinue = () => {
+    if (coordinates) {
+      navigate("/dashboard", { state: coordinates });
     }
   };
 
-  if (loadError) return <div>Erro ao carregar o Google Maps.</div>;
-  if (!isLoaded) return <div>Carregando Google Maps...</div>;
+  if (loadError) return <Typography>Erro ao carregar Google Maps</Typography>;
+  if (!isLoaded || loading) return <CircularProgress />;
 
   return (
-    <Container maxWidth="sm" sx={{ textAlign: "center", marginTop: "5rem" }}>
-      <Typography variant="h4" gutterBottom>
-        Sistema Climático
-      </Typography>
-      <form onSubmit={handleSubmit}>
-        <Box sx={{ marginTop: "2rem" }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        bgcolor: "background.default",
+        p: 3,
+      }}
+    >
+      <Paper
+        elevation={3}
+        sx={{
+          width: "100%",
+          maxWidth: 400,
+          p: 4,
+          textAlign: "center",
+        }}
+      >
+        <Typography variant="h5" gutterBottom>
+          {username ? `Bem-vindo, ${username}!` : "Sistema Climático"}
+        </Typography>
+        {location ? (
+          <Typography variant="body1" gutterBottom>
+            Localização atual: {location}
+          </Typography>
+        ) : (
           <TextField
-            fullWidth
-            variant="outlined"
             placeholder="Digite sua localização..."
             inputRef={inputRef}
+            fullWidth
+            value={location} // Campo controlado
+            onChange={(e) => setLocation(e.target.value)} // Permite edição manual
+            onFocus={handlePlaceSelect} // Ativa o autocompletar
+            sx={{ mt: 2 }}
           />
-        </Box>
+        )}
         <Button
           variant="contained"
           color="primary"
-          sx={{ marginTop: "1.5rem" }}
-          type="submit"
-          disabled={loading}
+          onClick={handleContinue}
+          disabled={!coordinates}
+          sx={{ mt: 3 }}
         >
-          {loading ? "Salvando..." : "Continuar"}
+          Continuar
         </Button>
-      </form>
-    </Container>
+      </Paper>
+    </Box>
   );
 };
 
