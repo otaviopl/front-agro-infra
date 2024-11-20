@@ -49,6 +49,7 @@ const Dashboard = () => {
           latitude,
           longitude
         );
+        console.log(data)
         setWeatherData(data);
       } catch (err) {
         console.error("Erro ao buscar dados climáticos:", err);
@@ -65,9 +66,26 @@ const Dashboard = () => {
     }
   }, [latitude, longitude]);
 
-  const handleExtraDataFetch = async (url) => {
+  const handleExtraDataFetch = async (baseUrl, params = {}) => {
     try {
-      const data = await fetchLambdaData(url, latitude, longitude);
+      // Construir a URL com parâmetros de consulta
+      const url = new URL(baseUrl);
+      Object.entries(params).forEach(([key, value]) =>
+        url.searchParams.append(key, value)
+      );
+  
+      const response = await fetch(url.toString(), {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar dados: ${response.statusText}`);
+      }
+  
+      const data = await response.json();
       setExtraData(data);
     } catch (err) {
       console.error("Erro ao buscar dados extras:", err);
@@ -154,19 +172,24 @@ const Dashboard = () => {
               Ações adicionais
             </Typography>
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <Button
-                  variant="contained"
-                  fullWidth
-                  onClick={() =>
-                    handleExtraDataFetch(
-                      "https://aw1gwngj0h.execute-api.us-east-1.amazonaws.com/dev/extra-weather-data"
-                    )
-                  }
-                >
-                  Buscar dados detalhados
-                </Button>
-              </Grid>
+            <Grid item xs={12} sm={6}>
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={() =>
+                  handleExtraDataFetch(
+                    "https://aw1gwngj0h.execute-api.us-east-1.amazonaws.com/dev/alerts-info",
+                    {
+                      latitude,
+                      longitude,
+                      date: new Date().toISOString().split("T")[0], // Formato YYYY-MM-DD
+                    }
+                  )
+                }
+              >
+                Buscar histórico com base na Localização
+              </Button>
+            </Grid>
               <Grid item xs={12} sm={6}>
                 <Button
                   variant="contained"

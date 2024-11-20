@@ -5,10 +5,10 @@ import Home from "./components/Home";
 import Dashboard from "./components/Dashboard";
 import Login from "./components/Login";
 import Register from "./components/Register";
-import theme from "./theme"; // Importando o tema personalizado
+import theme from "./theme";
 
 function App() {
-  const [username, setUsername] = useState(""); // Estado global para armazenar o nome do usuário
+  const [username, setUsername] = useState("");
 
   return (
     <ThemeProvider theme={theme}>
@@ -24,5 +24,4 @@ function App() {
     </ThemeProvider>
   );
 }
-
 export default App;
