@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import DashboardData from "./dashData";
 import {
   Container,
   Typography,
@@ -49,7 +50,7 @@ const Dashboard = () => {
           latitude,
           longitude
         );
-        console.log(data)
+        console.log(data);
         setWeatherData(data);
       } catch (err) {
         console.error("Erro ao buscar dados climáticos:", err);
@@ -73,18 +74,18 @@ const Dashboard = () => {
       Object.entries(params).forEach(([key, value]) =>
         url.searchParams.append(key, value)
       );
-  
+
       const response = await fetch(url.toString(), {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
       });
-  
+
       if (!response.ok) {
         throw new Error(`Erro ao buscar dados: ${response.statusText}`);
       }
-  
+
       const data = await response.json();
       setExtraData(data);
     } catch (err) {
@@ -172,24 +173,26 @@ const Dashboard = () => {
               Ações adicionais
             </Typography>
             <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <Button
-                variant="contained"
-                fullWidth
-                onClick={() =>
-                  handleExtraDataFetch(
-                    "https://aw1gwngj0h.execute-api.us-east-1.amazonaws.com/dev/alerts-info",
-                    {
-                      latitude,
-                      longitude,
-                      date: new Date().toISOString().split("T")[0], // Formato YYYY-MM-DD
-                    }
-                  )
-                }
-              >
-                Buscar histórico com base na Localização
-              </Button>
-            </Grid>
+              <Grid item xs={12} sm={6}>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={() =>
+                    handleExtraDataFetch(
+                      "https://aw1gwngj0h.execute-api.us-east-1.amazonaws.com/dev/alerts-info",
+                      {
+                        latitude,
+                        longitude,
+                        date: new Date(new Date().setDate(new Date().getDate() - 1))
+                        .toISOString()
+                        .split("T")[0], // Data do dia anterior
+                      }
+                    )
+                  }
+                >
+                  Buscar histórico com base na Localização
+                </Button>
+              </Grid>
               <Grid item xs={12} sm={6}>
                 <Button
                   variant="contained"
@@ -200,19 +203,14 @@ const Dashboard = () => {
                     )
                   }
                 >
-                  Buscar previsão do tempo
+                  Buscar dados de plantio e colheita
                 </Button>
               </Grid>
             </Grid>
           </Box>
 
           {/* Dados extras */}
-          {extraData && (
-            <Box sx={{ marginTop: "2rem" }}>
-              <Typography variant="h6">Dados Extras:</Typography>
-              <Typography>{JSON.stringify(extraData)}</Typography>
-            </Box>
-          )}
+          {extraData && <DashboardData data={extraData} />}
         </Paper>
       </Container>
     </Box>
