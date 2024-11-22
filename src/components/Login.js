@@ -18,35 +18,29 @@ const Login = ({ setUsername }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
+
   const handleLogin = async (event) => {
     event.preventDefault();
     setError("");
     setIsLoading(true);
-  
+
     try {
-      // Construir o corpo no formato esperado
-      const requestBody = {
-        body: JSON.stringify({
-          username,
-          email,
-          password,
-        }),
-      };
-  
       const response = await fetch(
-        "https://aw1gwngj0h.execute-api.us-east-1.amazonaws.com/dev/login",
+        "https://yvv8xenqud.execute-api.us-east-1.amazonaws.com/dev/login",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(requestBody), // Enviar o corpo formatado
+          body: JSON.stringify({
+            body: JSON.stringify({ username, email, password }),
+          }),
         }
       );
-  
+
       const rawData = await response.json();
       const data = JSON.parse(rawData.body);
-  
+
       if (rawData.statusCode === 200 && data.token) {
         localStorage.setItem("authToken", data.token);
         sessionStorage.setItem("username", username);
@@ -60,7 +54,7 @@ const Login = ({ setUsername }) => {
     } finally {
       setIsLoading(false);
     }
-  };  
+  };
 
   return (
     <Paper
@@ -116,6 +110,15 @@ const Login = ({ setUsername }) => {
           sx={{ mt: 2 }}
         >
           {isLoading ? <CircularProgress size={24} color="inherit" /> : "Entrar"}
+        </Button>
+        <Button
+          variant="outlined"
+          color="secondary"
+          fullWidth
+          sx={{ mt: 2 }}
+          onClick={() => navigate("/register")}
+        >
+          Registrar-se
         </Button>
       </Box>
     </Paper>

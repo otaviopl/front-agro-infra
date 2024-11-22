@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { fetchLambdaData, getMaxHourValues } from "../services/generalOperation"
 import DashboardData from "./dashData";
+import SummaryDisplay from "./Summary";
 import {
   Container,
   Typography,
@@ -11,46 +13,29 @@ import {
   Grid,
 } from "@mui/material";
 
-const fetchLambdaData = async (url, latitude, longitude) => {
-  const payload = {
-    body: JSON.stringify({ latitude, longitude }),
-  };
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Erro ao conectar à API: ${response.statusText}`);
-  }
-
-  const responseData = await response.json();
-  const parsedBody = JSON.parse(responseData.body);
-  return parsedBody;
-};
 
 const Dashboard = () => {
   const location = useLocation();
   const { latitude, longitude } = location.state || {};
+
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const [extraData, setExtraData] = useState(null);
+  const [summaryData, setSummaryData] = useState(null);
+  const [plantioButtonText, setPlantioButtonText] = useState(
+    "Buscar dados de plantio e colheita"
+  );
+  const [plantioData, setPlantioData] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await fetchLambdaData(
-          "https://aw1gwngj0h.execute-api.us-east-1.amazonaws.com/dev/weather-info",
+          "https://yvv8xenqud.execute-api.us-east-1.amazonaws.com/dev/weather-info",
           latitude,
           longitude
         );
-        console.log(data);
         setWeatherData(data);
       } catch (err) {
         console.error("Erro ao buscar dados climáticos:", err);
@@ -60,8 +45,9 @@ const Dashboard = () => {
       }
     };
 
-    if (latitude && longitude) fetchData();
-    else {
+    if (latitude && longitude) {
+      fetchData();
+    } else {
       setError("Localização não fornecida.");
       setLoading(false);
     }
@@ -69,7 +55,6 @@ const Dashboard = () => {
 
   const handleExtraDataFetch = async (baseUrl, params = {}) => {
     try {
-      // Construir a URL com parâmetros de consulta
       const url = new URL(baseUrl);
       Object.entries(params).forEach(([key, value]) =>
         url.searchParams.append(key, value)
@@ -83,7 +68,7 @@ const Dashboard = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`Erro ao buscar dados: ${response.statusText}`);
+        throw new Error(`Erro ao buscar dados extras: ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -93,6 +78,81 @@ const Dashboard = () => {
       setError("Erro ao buscar dados extras.");
     }
   };
+const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  
+const handlePlantioFetch = async () => {
+  try {
+    if (plantioButtonText === "Buscar dados de plantio e colheita") {
+      const response = await fetch(
+        "https://yvv8xenqud.execute-api.us-east-1.amazonaws.com/dev/cultures",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Erro ao buscar dados de plantio e colheita: ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+      setPlantioData(data);
+      setPlantioButtonText("Gerar Resumo");
+    } else if (plantioButtonText === "Gerar Resumo") {
+      if (!plantioData) {
+        setError("Dados de plantio indisponíveis para gerar resumo.");
+        return;
+      }
+
+      setIsGeneratingSummary(true);
+
+      const simplifiedAlerts = getMaxHourValues(extraData);
+      const combinedData = {
+        body: JSON.stringify({
+          ...JSON.parse(plantioData.body),
+          cultures: JSON.parse(plantioData.body).cultures,
+          alerts: simplifiedAlerts,
+        }),
+      };
+
+      const interpretResponse = await fetch(
+        "https://yvv8xenqud.execute-api.us-east-1.amazonaws.com/dev/interpret",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(combinedData),
+        }
+      );
+
+      if (!interpretResponse.ok) {
+        throw new Error(
+          `Erro ao gerar resumo: ${interpretResponse.statusText}`
+        );
+      }
+
+      const summary = await interpretResponse.json();
+      const parsedSummary = JSON.parse(summary.body);
+      try{
+        setSummaryData(parsedSummary.interpretation);
+        console.log(parsedSummary)
+        setIsGeneratingSummary(false);
+      }catch{
+        console.log('error api openAi')
+      }
+
+      }
+  } catch (err) {
+    console.error(err.message);
+    setError(err.message);
+    setIsGeneratingSummary(false);
+  }
+};
 
   if (loading) {
     return (
@@ -128,6 +188,7 @@ const Dashboard = () => {
       </Box>
     );
   }
+  console.log(summaryData)
 
   return (
     <Box
@@ -167,7 +228,6 @@ const Dashboard = () => {
             </Typography>
           )}
 
-          {/* Botões para ativar outras Lambdas */}
           <Box sx={{ marginTop: "2rem" }}>
             <Typography variant="h6" gutterBottom>
               Ações adicionais
@@ -179,13 +239,15 @@ const Dashboard = () => {
                   fullWidth
                   onClick={() =>
                     handleExtraDataFetch(
-                      "https://aw1gwngj0h.execute-api.us-east-1.amazonaws.com/dev/alerts-info",
+                      "https://yvv8xenqud.execute-api.us-east-1.amazonaws.com/dev/alerts-info",
                       {
                         latitude,
                         longitude,
-                        date: new Date(new Date().setDate(new Date().getDate() - 1))
-                        .toISOString()
-                        .split("T")[0], // Data do dia anterior
+                        date: new Date(
+                          new Date().setDate(new Date().getDate() - 1)
+                        )
+                          .toISOString()
+                          .split("T")[0],
                       }
                     )
                   }
@@ -197,20 +259,19 @@ const Dashboard = () => {
                 <Button
                   variant="contained"
                   fullWidth
-                  onClick={() =>
-                    handleExtraDataFetch(
-                      "https://aw1gwngj0h.execute-api.us-east-1.amazonaws.com/dev/forecast-info"
-                    )
-                  }
+                  onClick={handlePlantioFetch}
                 >
-                  Buscar dados de plantio e colheita
+                  {plantioButtonText}
                 </Button>
               </Grid>
             </Grid>
           </Box>
 
-          {/* Dados extras */}
           {extraData && <DashboardData data={extraData} />}
+          <SummaryDisplay
+            summary={summaryData}
+            loading={isGeneratingSummary}
+          />
         </Paper>
       </Container>
     </Box>

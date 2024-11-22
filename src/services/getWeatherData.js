@@ -1,5 +1,5 @@
 const fetchWeatherData = async (address) => {
-    const response = await fetch("https://aw1gwngj0h.execute-api.us-east-1.amazonaws.com/dev/weather-info", {
+    const response = await fetch("https://yvv8xenqud.execute-api.us-east-1.amazonaws.com/dev/weather-info", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
