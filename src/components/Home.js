@@ -151,43 +151,78 @@ const Home = ({ username: passedUsername }) => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        bgcolor: "background.default",
+        bgcolor: "linear-gradient(135deg, #0f2027, #203a43, #2c5364)",
+        color: "#ffffff",
         p: 3,
       }}
     >
       <Paper
-        elevation={3}
+        elevation={6}
         sx={{
           width: "100%",
           maxWidth: 400,
           p: 4,
           textAlign: "center",
+          background: "rgba(255, 255, 255, 0.1)",
+          backdropFilter: "blur(10px)",
+          borderRadius: "20px",
+          boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.5)",
         }}
       >
-        <Typography variant="h5" gutterBottom>
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{
+            fontWeight: "bold",
+            color: "#00e676",
+            marginBottom: 2,
+          }}
+        >
           {username ? `Bem-vindo, ${username}!` : "Sistema Climático"}
         </Typography>
-
+  
         {isEditing ? (
           <TextField
             placeholder="Digite sua nova localização..."
-            inputRef={inputRef} // Campo conectado ao Autocomplete
+            inputRef={inputRef}
             fullWidth
-            defaultValue={location} // Exibe a localização atual como padrão
-            sx={{ mt: 2 }}
+            defaultValue={location}
+            variant="outlined"
+            sx={{
+              mt: 2,
+              "& .MuiOutlinedInput-root": {
+                color: "#ffffff",
+                "& fieldset": {
+                  borderColor: "#00e676",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#00c853",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#00e676",
+                },
+              },
+            }}
           />
         ) : (
           <Typography variant="body1" gutterBottom>
-            Localização atual: {location}
+            🌍 <b>Localização atual:</b> {location || "Não definida"}
           </Typography>
         )}
-
+  
         {isEditing ? (
           <Button
             variant="contained"
             color="primary"
             onClick={handleSaveNewLocation}
-            sx={{ mt: 3 }}
+            sx={{
+              mt: 3,
+              backgroundColor: "#00e676",
+              fontWeight: "bold",
+              "&:hover": {
+                backgroundColor: "#00c853",
+              },
+            }}
           >
             Salvar Nova Localização
           </Button>
@@ -196,24 +231,41 @@ const Home = ({ username: passedUsername }) => {
             variant="outlined"
             color="secondary"
             onClick={handleEditLocation}
-            sx={{ mt: 3 }}
+            sx={{
+              mt: 3,
+              borderColor: "#00e676",
+              color: "#00e676",
+              fontWeight: "bold",
+              "&:hover": {
+                backgroundColor: "#00c853",
+                color: "#ffffff",
+              },
+            }}
           >
             Alterar Localização
           </Button>
         )}
-
+  
         <Button
           variant="contained"
           color="primary"
           onClick={handleContinue}
           disabled={!coordinates}
-          sx={{ mt: 3 }}
+          sx={{
+            mt: 3,
+            backgroundColor: "#007bff",
+            fontWeight: "bold",
+            "&:hover": {
+              backgroundColor: "#0056b3",
+            },
+          }}
         >
           Continuar
         </Button>
       </Paper>
     </Box>
   );
+  
 };
 
 export default Home;
