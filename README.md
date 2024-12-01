@@ -1,70 +1,53 @@
-# Getting Started with Create React App
+# 🌱 **Agro Data**  
+*O seu guia inteligente para o cultivo baseado no clima.*
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+---
 
-## Available Scripts
+## 📝 **Visão Geral**
+**Clima para Cultivar** é uma aplicação que combina dados climáticos detalhados com sugestões inteligentes de cultivo. Basta inserir sua localização, e nosso sistema fornece previsões personalizadas, além de recomendações de plantas adequadas ao seu clima. Tudo isso é potenciado por inteligência artificial!
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## 🎯 **Principais Funcionalidades**
+- **Consulta Climática Detalhada**: 
+  - Dados como temperatura, umidade, chuvas previstas e outras variáveis climáticas.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Sugestões de Plantio com IA**: 
+  - Sugestões de plantas adequadas ao clima informado.
+  - Orientações sobre períodos ideais de plantio, irrigação e colheita.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Alertas Inteligentes**:
+  - Notificações de condições climáticas extremas.
+  - Avisos sobre possíveis pragas ou doenças baseadas no clima local.
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🚀 **Como Usar**
+1. **Informe Sua Localização**:
+   - Digite sua cidade ou ative o GPS para localizar automaticamente sua posição.
 
-### `npm run build`
+2. **Explore os Dados Climáticos**:
+   - Consulte gráficos e tabelas com informações climáticas detalhadas.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+3. **Receba Sugestões Inteligentes**:
+   - Descubra as plantas mais indicadas para cultivar em sua região.
+   - Obtenha dicas de cuidado personalizadas.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 💡 **Diferenciais**
+- **Simples e Intuitivo**: Interface minimalista e de fácil uso.
+- **IA Potente**: Recomendações precisas e personalizadas.
+- **Foco no Agricultor Amador**: Ajuda a cultivar hortas e jardins com confiança.
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 🛠️ **Tecnologias Utilizadas**
+- **Front-End**: React.js
+- **Back-End**: Node.js com APIs RESTful AWS
+- **Banco de Dados**: DynamoDB para armazenar preferências e consultas.
+- **Integração Climática**: APIs de dados meteorológicos.
+- **IA**: Modelos para recomendações de cultivo e estratégias.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Aproveite o **Agro Data** e transforme sua horta ou jardim em algo incrível! 🍃
